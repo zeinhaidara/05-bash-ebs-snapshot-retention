@@ -68,13 +68,18 @@ prune() {
     echo "retention below 7 days refused; add --force-short-retention to override" >&2
     exit 1
   fi
-  local cutoff id started failed=0
+  local cutoff id started tag failed=0
   cutoff=$(date -u -d "$retention days ago" +%Y-%m-%dT%H:%M:%S)
   [ "$execute" -eq 1 ] || echo "dry run (add --execute to delete)"
-  while read -r id started; do
+  while read -r id started tag; do
     [ -n "$id" ] || continue
     # StartTime is ISO 8601 UTC, so plain string compare works
     [[ "$started" < "$cutoff" ]] || continue
+    # second check, in case the AWS-side filter is ever wrong
+    if [ "$tag" != "$TAG" ]; then
+      echo "skip $id: created-by tag is not $TAG"
+      continue
+    fi
     if [ "$execute" -eq 1 ]; then
       if ec2 delete-snapshot --snapshot-id "$id"; then
         echo "deleted $id ($started)"
@@ -87,7 +92,7 @@ prune() {
     fi
   done < <(ec2 describe-snapshots --owner-ids self \
     --filters "Name=tag:created-by,Values=$TAG" \
-    --query 'Snapshots[].[SnapshotId,StartTime]' --output text)
+    --query "Snapshots[].[SnapshotId,StartTime,Tags[?Key=='created-by']|[0].Value]" --output text)
   return "$failed"
 }
 

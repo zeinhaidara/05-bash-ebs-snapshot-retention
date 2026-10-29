@@ -38,4 +38,9 @@ run prune --region us-east-1 --retention-days 3 --execute
 [ $rc -ne 0 ] && ! called delete-snapshot
 check "retention below 7 days is refused" $?
 
+FAKE_IGNORE_FILTER=1 run prune --region us-east-1 --execute
+! called "snap-foreign"
+check "prune skips an untagged snapshot even if the filter is ignored" $?
+unset FAKE_IGNORE_FILTER
+
 exit $fails
