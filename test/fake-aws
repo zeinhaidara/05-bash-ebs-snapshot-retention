@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Fake aws CLI: prints canned output and logs every call to $FAKE_LOG.
+echo "$*" >> "${FAKE_LOG:?}"
+args=" $* "
+case $4 in
+  describe-volumes)
+    printf 'vol-running\ti-running\nvol-stopped\ti-stopped\n' ;;
+  describe-instances)
+    case $args in
+      *i-stopped*) echo stopped ;;
+      *) echo running ;;
+    esac ;;
+  create-snapshot) echo snap-new ;;
+  describe-snapshots)
+    printf 'snap-old\t2020-01-01T00:00:00+00:00\tebs-backup-script\n'
+    printf 'snap-recent\t2999-01-01T00:00:00+00:00\tebs-backup-script\n'
+    # no tag filter (or FAKE_IGNORE_FILTER set): also return a foreign old snapshot
+    if [ -n "${FAKE_IGNORE_FILTER:-}" ] || [[ $args != *tag:created-by* ]]; then
+      printf 'snap-foreign\t2020-01-01T00:00:00+00:00\tNone\n'
+    fi ;;
+  delete-snapshot) ;;
+  *) echo "fake-aws: unexpected call: $*" >&2; exit 1 ;;
+esac
