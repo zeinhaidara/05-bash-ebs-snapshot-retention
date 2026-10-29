@@ -15,7 +15,7 @@ fails=0
 check() { # name, condition result (0 = pass)
   if [ "$2" -eq 0 ]; then echo "PASS $1"; else echo "FAIL $1"; fails=1; fi
 }
-run() { : > "$FAKE_LOG"; "$script" "$@" >/dev/null 2>&1; rc=$?; }
+run() { : > "$FAKE_LOG"; bash "$script" "$@" >/dev/null 2>&1; rc=$?; }
 called() { grep -q "$1" "$FAKE_LOG"; }
 
 run snapshot --region us-east-1
