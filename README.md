@@ -1,4 +1,4 @@
-# ebs-snapshot-retention
+# EBS snapshot retention script
 
 ## Problem
 Backups that nobody runs, and snapshot sprawl that nobody cleans up.
@@ -53,7 +53,7 @@ Needs bash, GNU `date` and the AWS CLI. Tests run without AWS: `bash test/run.sh
 ```
 The condition on `DeleteSnapshot` is written from memory of the IAM docs. I could not verify the syntax without AWS, so test it in a sandbox account before relying on it.
 
-## Limits
+## Known limitations
 - No cross-region copy and no cross-account.
 - A volume must be attached to a running instance to be picked up.
 - Snapshot age uses `StartTime`.
