@@ -1,5 +1,7 @@
 # EBS snapshot retention script
 
+A Bash script that snapshots tagged EBS volumes and deletes only its own snapshots once they pass a retention period.
+
 ## Problem
 Backups that nobody runs, and snapshot sprawl that nobody cleans up.
 
@@ -17,7 +19,13 @@ Backups that nobody runs, and snapshot sprawl that nobody cleans up.
 Retention defaults to 30 days. Below 7 days is refused unless you add `--force-short-retention`.
 `snapshot` keeps going if one volume fails, and exits non-zero at the end.
 
-Needs bash, GNU `date` and the AWS CLI. Tests run without AWS: `bash test/run.sh`.
+Needs bash, GNU `date` and the AWS CLI.
+
+Run the same checks as CI. No AWS access is needed: `test/run.sh` puts the fake `aws` CLI from `test/fake-aws` first on `PATH` and checks the calls the script makes.
+```
+shellcheck backup.sh test/run.sh
+bash test/run.sh
+```
 
 ## Safety
 - `prune` is a dry run unless `--execute` is passed.
@@ -59,3 +67,4 @@ The condition on `DeleteSnapshot` is written from memory of the IAM docs. I coul
 - Snapshot age uses `StartTime`.
 - No backup verification: the script does not check that a snapshot completed or can be restored.
 - Uses GNU `date`, so it runs on Linux, not stock macOS.
+- Never run against a real AWS account. Only the fake CLI has been used.
